@@ -1,0 +1,45 @@
+name: Auto Visit Websites
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # 每30分钟运行一次
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  visit-websites:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+
+    - name: Visit websites
+      env:
+        WEBSITES: |
+          https://us2.wengmail.dpdns.org/sub
+          https://in1.wengmail.dpdns.org/sub
+          https://in2.wengmail.dpdns.org/sub
+          https://in3.wengmail.dpdns.org/sub
+      run: |
+        python -c "
+        import requests
+        import os
+        websites = os.getenv('WEBSITES').strip().split('\n')
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124'}
+        for url in websites:
+            try:
+                response = requests.get(url, headers=headers, timeout=10)
+                print(f'Visited {url}: {response.status_code}')
+            except Exception as e:
+                print(f'Error visiting {url}: {str(e)}')
+        "
